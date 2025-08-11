@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Matrices PRO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-family: 'Poppins', sans-serif;
+            --c-a: #3498db; --bg-a: rgba(52, 152, 219, 0.1);
+            --c-b: #2ecc71; --bg-b: rgba(46, 204, 113, 0.1);
+            --c-c: #f1c40f; --bg-c: rgba(241, 196, 15, 0.1);
+            --c-result: #9b59b6; --bg-result: rgba(155, 89, 182, 0.1);
+            --c-error: #e74c3c; --bg-error: rgba(231, 76, 60, 0.1);
+            --c-success: #27ae60; --bg-success: rgba(39, 174, 96, 0.1);
+            --c-text: #34495e;
+            --c-bg: #ecf0f1;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family);
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--c-text);
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container { max-width: 1400px; margin: auto; }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: var(--shadow);
+            transition: box-shadow 0.3s ease-in-out;
+        }
+
+        .highlight-tutorial {
+            box-shadow: 0 0 0 4px var(--c-a), 0 8px 32px 0 rgba(52, 152, 219, 0.5);
+            transform: scale(1.01);
+        }
+
+        header { text-align: center; }
+        header h1 { font-size: 2.5em; color: #2c3e50; }
+        header p { font-size: 1.2em; color: #7f8c8d; }
+
+        .matrices-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .matrix-container {
+            border-left: 7px solid;
+            transition: transform 0.3s ease;
+        }
+        .matrix-container:hover { transform: translateY(-5px); }
+        .matrix-container.matrix-a { border-color: var(--c-a); }
+        .matrix-container.matrix-b { border-color: var(--c-b); }
+        .matrix-container.matrix-c { border-color: var(--c-c); }
+
+        .matrix-container h3 { font-size: 1.5em; margin-bottom: 15px; }
+        .matrix-container.matrix-a h3 { color: var(--c-a); }
+        .matrix-container.matrix-b h3 { color: var(--c-b); }
+        .matrix-container.matrix-c h3 { color: var(--c-c); }
+
+        .matrix-info { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.9em; }
+        .matrix-info .dimensions-controls { display: flex; align-items: center; gap: 5px; background: #e9ecef; padding: 3px 8px; border-radius: 12px;}
+        .matrix-info .dimensions-controls input { width: 45px; text-align: center; border: 1px solid #ccc; border-radius: 5px; padding: 2px; }
+        
+        .matrix-grid { display: grid; gap: 8px; margin-bottom: 15px; }
+        .matrix-grid input {
+            width: 100%; height: 50px; text-align: center; font-size: 1.1em;
+            border: 2px solid #dde2e7; border-radius: 10px; transition: all 0.2s ease;
+        }
+        .matrix-grid input:focus {
+            outline: none; transform: scale(1.05);
+            box-shadow: 0 0 0 3px var(--bg-a);
+        }
+        .matrix-a .matrix-grid input:focus { border-color: var(--c-a); box-shadow: 0 0 0 3px var(--bg-a); }
+        .matrix-b .matrix-grid input:focus { border-color: var(--c-b); box-shadow: 0 0 0 3px var(--bg-b); }
+        .matrix-c .matrix-grid input:focus { border-color: var(--c-c); box-shadow: 0 0 0 3px var(--bg-c); }
+
+        .matrix-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn {
+            flex-grow: 1; padding: 12px; border: none; border-radius: 10px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+        .btn:disabled {
+            background: #bdc3c7 !important;
+            color: #7f8c8d !important;
+            cursor: not-allowed;
+            transform: none;
+            background-image: none !important;
+        }
+        .btn-fill { background-color: #3498db; color: white; }
+        .btn-clear { background-color: #e74c3c; color: white; }
+        .btn:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        .op-section h3, .tab-content h4 { margin-bottom: 15px; border-bottom: 2px solid var(--c-bg); padding-bottom: 10px; color: #2c3e50; }
+        .op-group { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 20px; }
+        .op-group select, .op-group input { padding: 10px; border-radius: 8px; border: 2px solid #dde2e7; font-family: var(--font-family); font-size: 1em; }
+        .op-group input[type="number"] { width: 80px; }
+        
+        .btn-op {
+            background-image: linear-gradient(45deg, #6a11cb 0%, #2575fc 100%);
+            color: white; padding: 10px 20px;
+        }
+
+        .tabs { display: flex; margin-bottom: 15px; background-color: #e9ecef; border-radius: 12px; padding: 5px; }
+        .tab-btn { flex: 1; padding: 10px; background: transparent; border: none; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .tab-btn.active { background: white; color: #2575fc; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #results_container .result-title { font-size: 1.4em; margin-bottom: 15px; color: #2c3e50; }
+        .result-matrix table { border-collapse: collapse; margin: 10px auto; box-shadow: var(--shadow);}
+        .result-matrix table td {
+            min-width: 45px; height: 45px; padding: 8px; text-align: center;
+            border: 2px solid #bdc3c7; font-weight: 600; font-size: 1em;
+            background-color: #fff;
+        }
+
+        .result-final table { background: var(--bg-result); }
+        .result-final table td { border-color: var(--c-result); color: var(--c-result); }
+        
+        .step { border-left: 4px solid; padding-left: 15px; margin-bottom: 20px; }
+        .step.color-a { border-color: var(--c-a); }
+        .step.color-b { border-color: var(--c-b); }
+        .step.color-c { border-color: var(--c-c); }
+        .step.color-result { border-color: var(--c-result); }
+        .step-title { font-weight: 600; margin-bottom: 5px; color: #7f8c8d; }
+
+        #history_log { max-height: 250px; overflow-y: auto; padding-right: 10px; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; transition: background-color 0.2s; }
+        .history-item:hover { background-color: #f9f9f9; }
+        .history-item:last-child { border-bottom: none; }
+        .history-item span:first-child { color: #7f8c8d; font-size: 0.9em; }
+        .history-item strong { flex-grow: 1; text-align: right; padding-left: 15px;}
+
+        .btn-export {
+            font-size: 1.2em; padding: 15px 30px;
+            background-image: linear-gradient(to right, #1d976c 0%, #93f9b9  51%, #1d976c  100%);
+            color: white; border-radius: 50px;
+            background-size: 200% auto;
+            transition: background-position 0.5s;
+        }
+        .btn-export:hover { background-position: right center; }
+        
+        #notification_container { position: fixed; top: 20px; right: 20px; z-index: 2000; width: 320px; }
+        .toast {
+            background: #fff; padding: 15px 20px; border-radius: 10px; margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-left: 5px solid;
+            animation: slideIn 0.5s, fadeOut 0.5s 4.5s;
+            display: flex; flex-direction: column;
+        }
+        .toast strong { font-size: 1.1em; margin-bottom: 5px; }
+        .toast.success { border-color: var(--c-success); color: var(--c-success);}
+        .toast.error { border-color: var(--c-error); color: var(--c-error); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
+            align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white; padding: 30px;
+            border-radius: 20px; width: 90%; max-width: 600px;
+            box-shadow: var(--shadow);
+        }
+        .modal-content h2 { margin-bottom: 15px; color: #2c3e50; }
+
+        #equation_solver_matrices { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: center; }
+        #equation_solver_matrices .matrix-grid { margin-bottom: 0; }
+    </style>
+</head>
+<body>
+    <div id="notification_container"></div>
+    <div class="container">
+        <header class="panel">
+            <h1>Simulador de Matrices PRO</h1>
+            <p>La herramienta definitiva para visualización y cálculo de matrices.</p>
+        </header>
+
+        <section id="panel_actions" class="panel" style="text-align: center; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+             <button id="tutorial_btn" class="btn btn-op" style="padding: 15px 30px; font-size: 1.1em;">🚀 Iniciar Tutorial Guiado</button>
+             <button id="download_app_btn" class="btn btn-op" style="padding: 15px 30px; font-size: 1.1em; background-image: linear-gradient(to right, #1d976c 0%, #93f9b9 51%, #1d976c 100%);">📥 Descargar App (Offline)</button>
+        </section>
+
+        <section class="matrices-panel">
+            <!-- Matriz A, B, C ... -->
+            <!-- Matriz A -->
+            <div id="panel_a" class="panel matrix-container matrix-a">
+                <h3>Matriz A</h3>
+                <div class="matrix-info">
+                    <div class="dimensions-controls">
+                        <input type="number" value="3" min="1" max="8" id="rows_a" onchange="handleDimensionChange('A')"> x 
+                        <input type="number" value="3" min="1" max="8" id="cols_a" onchange="handleDimensionChange('A')">
+                    </div>
+                </div>
+                <div class="matrix-grid" id="matrix_a_grid"></div>
+                <div class="matrix-actions">
+                    <button class="btn btn-fill" onclick="fillMatrix('A')">🔢 Aleatorio</button>
+                    <button class="btn btn-clear" onclick="clearMatrix('A')">🗑 Limpiar</button>
+                </div>
+            </div>
+            <!-- Matriz B -->
+            <div id="panel_b" class="panel matrix-container matrix-b">
+                <h3>Matriz B</h3>
+                 <div class="matrix-info">
+                    <div class="dimensions-controls">
+                        <input type="number" value="3" min="1" max="8" id="rows_b" onchange="handleDimensionChange('B')"> x 
+                        <input type="number" value="3" min="1" max="8" id="cols_b" onchange="handleDimensionChange('B')">
+                    </div>
+                </div>
+                <div class="matrix-grid" id="matrix_b_grid"></div>
+                <div class="matrix-actions">
+                    <button class="btn btn-fill" style="background-color: #2ecc71;" onclick="fillMatrix('B')">🔢 Aleatorio</button>
+                    <button class="btn btn-clear" onclick="clearMatrix('B')">🗑 Limpiar</button>
+                </div>
+            </div>
+            <!-- Matriz C -->
+            <div id="panel_c" class="panel matrix-container matrix-c">
+                <h3>Matriz C</h3>
+                 <div class="matrix-info">
+                    <div class="dimensions-controls">
+                        <input type="number" value="3" min="1" max="8" id="rows_c" onchange="handleDimensionChange('C')"> x 
+                        <input type="number" value="3" min="1" max="8" id="cols_c" onchange="handleDimensionChange('C')">
+                    </div>
+                </div>
+                <div class="matrix-grid" id="matrix_c_grid"></div>
+                <div class="matrix-actions">
+                    <button class="btn btn-fill" style="background-color: #f1c40f;" onclick="fillMatrix('C')">🔢 Aleatorio</button>
+                    <button class="btn btn-clear" onclick="clearMatrix('C')">🗑 Limpiar</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="panel_ops" class="panel">
+            <div class="tabs">
+                <button class="tab-btn" onclick="openTab(event, 'basic')">Básicas</button>
+                <button class="tab-btn" onclick="openTab(event, 'advanced')">Avanzadas</button>
+                <button class="tab-btn" onclick="openTab(event, 'combined')">Expresiones</button>
+                <button class="tab-btn" onclick="openTab(event, 'equations')">Ecuaciones y Rango</button>
+            </div>
+            <!-- Pestañas de operaciones -->
+            <div id="basic" class="tab-content"></div>
+            <div id="advanced" class="tab-content"></div>
+            <div id="combined" class="tab-content"></div>
+            <div id="equations" class="tab-content"></div>
+        </section>
+
+        <section id="panel_results" class="panel">
+            <h2>Resultados</h2>
+            <div id="results_container"><p>Los resultados de sus cálculos aparecerán aquí.</p></div>
+        </section>
+
+        <section id="panel_history" class="panel">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Historial y Reporte</h2>
+                <button class="btn btn-clear" style="padding: 8px 15px;" onclick="clearHistory()">Limpiar Historial</button>
+            </div>
+            <hr style="margin: 15px 0;">
+            <div id="history_log"><p>El historial de operaciones está vacío.</p></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-export" onclick="exportToWord()">📄 Generar Reporte Profesional (.doc)</button>
+            </div>
+        </section>
+
+        <div id="tutorial_modal" class="modal">
+            <div class="modal-content">
+                <div id="tutorial_content"></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+                    <button id="tutorial_prev" class="btn">Anterior</button>
+                    <span id="tutorial_indicator"></span>
+                    <button id="tutorial_next" class="btn">Siguiente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+    // --- STATE MANAGEMENT ---
+    const appState = {
+        matrices: {
+            A: [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+            B: [[9, 8, 7], [6, 5, 4], [3, 2, 1]],
+            C: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        },
+        history: [], // Will store {operation, steps, result, timestamp}
+        tutorial: {
+            currentStep: 0,
+            steps: [
+                { title: "Paso 1: Bienvenido al Simulador PRO", content: "Este tour te guiará por las funciones clave. ¡Vamos a empezar!", target: 'header' },
+                { title: "Paso 2: Matrices Dinámicas", content: "Ahora puedes cambiar las dimensiones de cada matriz usando los controles de filas y columnas. La cuadrícula se actualizará al instante.", target: '.matrices-panel' },
+                { title: "Paso 3: Expresiones Complejas", content: "La pestaña 'Expresiones' ahora soporta potencias como A^2 y es insensible a mayúsculas para A^t. ¡Prueba '2*A^2 - B^t'!", target: '#combined' },
+                { title: "Paso 4: Ecuaciones y Rango", content: "En la pestaña 'Ecuaciones y Rango', puedes resolver ecuaciones matriciales como <b>M·X+N=P</b> o calcular el rango de una matriz.", target: '#equations' },
+                { title: "Paso 5: Resultados Detallados", content: "Los resultados de tus cálculos aparecen aquí, con los pasos detallados para cada operación, incluyendo las potencias.", target: '#panel_results' },
+                { title: "Paso 6: Llévala Contigo", content: "Haz clic en 'Descargar App' para guardar esta calculadora como un único archivo HTML. Podrás abrirla en tu navegador y usarla en cualquier momento, ¡incluso sin conexión a internet!", target: '#download_app_btn' },
+                { title: "Paso 7: Reporte Profesional", content: "Al final, haz clic en 'Generar Reporte' para descargar un documento de Word con todas tus matrices, estadísticas y el historial de operaciones detallado paso a paso. ¡Listo para explorar!", target: '#panel_history' }
+            ]
+        }
+    };
+
+    // --- UTILITY & HELPER FUNCTIONS ---
+    const getEl = id => document.getElementById(id);
+    const cloneMatrix = m => m.map(row => [...row]);
+
+    function matrixToHtmlTable(matrix, colorClass = '', name = '') {
+        if (!matrix || !Array.isArray(matrix) || matrix.length === 0 || !Array.isArray(matrix[0])) {
+            return '<span>Matriz inválida o vacía</span>';
+        }
+        let tableHtml = `<div class="result-matrix ${colorClass}">`;
+        if (name) tableHtml += `<p style="text-align:center; font-weight:bold;">${name}</p>`;
+        tableHtml += `<table>`;
+        tableHtml += matrix.map(row =>
+            `<tr>${row.map(cell =>
+                `<td>${Number(cell.toFixed(3)).toString()}</td>`
+            ).join('')}</tr>`
+        ).join('');
+        tableHtml += '</table></div>';
+        return tableHtml;
+    }
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        renderAllMatrixInputs();
+        setupEventListeners();
+        renderTabsContent();
+        openTab(null, 'basic');
+        renderHistory();
+    });
+
+    // --- UI & DYNAMIC MATRIX RENDERING ---
+    // ... (All functions in this section remain unchanged)
+    function renderAllMatrixInputs() { ['A', 'B', 'C'].forEach(name => renderMatrixInput(name)); }
+    function handleDimensionChange(name) {
+        const rows = parseInt(getEl(`rows_${name.toLowerCase()}`).value, 10);
+        const cols = parseInt(getEl(`cols_${name.toLowerCase()}`).value, 10);
+        const oldMatrix = appState.matrices[name];
+        const newMatrix = Array(rows).fill(0).map((_, i) => Array(cols).fill(0).map((__, j) => (oldMatrix[i] && typeof oldMatrix[i][j] !== 'undefined') ? oldMatrix[i][j] : 0));
+        appState.matrices[name] = newMatrix;
+        renderMatrixInput(name);
+    }
+    function renderMatrixInput(name, matrixData, gridElement) {
+        const isMainMatrix = ['A', 'B', 'C'].includes(name);
+        let matrix, grid, cols;
+        if (isMainMatrix) {
+            matrix = appState.matrices[name];
+            grid = getEl(`matrix_${name.toLowerCase()}_grid`);
+            cols = matrix.length > 0 ? matrix[0].length : 0;
+        } else {
+            matrix = matrixData;
+            grid = gridElement;
+            cols = matrix.length > 0 ? matrix[0].length : 0;
+        }
+        grid.innerHTML = '';
+        grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        matrix.forEach((row, i) => {
+            row.forEach((cell, j) => {
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.setAttribute('aria-label', `Matriz ${name} fila ${i+1} columna ${j+1}`);
+                input.value = cell;
+                input.oninput = () => { const value = parseFloat(input.value); matrix[i][j] = isNaN(value) ? 0 : value; };
+                grid.appendChild(input);
+            });
+        });
+    }
+    function setupEventListeners() {
+        getEl('tutorial_btn').onclick = () => showModal(true);
+        getEl('download_app_btn').onclick = downloadApp; // <-- NUEVO EVENT LISTENER
+        getEl('tutorial_modal').onclick = (e) => { if (e.target.id === 'tutorial_modal') showModal(false); };
+        getEl('tutorial_prev').onclick = () => navigateTutorial(-1);
+        getEl('tutorial_next').onclick = () => navigateTutorial(1);
+    }
+    function fillMatrix(name) { appState.matrices[name] = appState.matrices[name].map(row => row.map(() => Math.floor(Math.random() * 20) - 10)); renderMatrixInput(name); showToast(`Matriz ${name} rellenada con valores aleatorios.`, 'success'); }
+    function clearMatrix(name) { appState.matrices[name] = appState.matrices[name].map(row => row.map(() => 0)); renderMatrixInput(name); showToast(`Matriz ${name} ha sido limpiada.`, 'success'); }
+    
+    function renderTabsContent() {
+        // ... (Basic, Advanced, Equations tabs remain unchanged)
+         getEl('basic').innerHTML = `<h4>Suma y Resta</h4><div class="op-group"><select id="op_basic_m1"><option>A</option><option>B</option><option>C</option></select><select id="op_basic_op"><option value="add">➕ Sumar</option><option value="subtract">➖ Restar</option></select><select id="op_basic_m2"><option selected>B</option><option>A</option><option>C</option></select><button class="btn btn-op" onclick="handleBasicOps()">Calcular</button></div><h4>Multiplicación por Escalar</h4><div class="op-group"><input type="number" id="op_scalar_val" value="2"> ×<select id="op_scalar_m"><option>A</option><option>B</option><option>C</option></select><button class="btn btn-op" onclick="handleScalarOps()">🔢 Multiplicar</button></div>`;
+        getEl('advanced').innerHTML = `<h4>Multiplicación de Matrices</h4><div class="op-group"><select id="op_adv_m1"><option>A</option><option>B</option><option>C</option></select>× <select id="op_adv_m2"><option selected>B</option><option>A</option><option>C</option></select><button class="btn btn-op" onclick="handleAdvancedOps('multiply')">🧮 Multiplicar Matrices</button></div><h4>Otras Operaciones</h4><div class="op-group"><select id="op_adv_single_m"><option>A</option><option>B</option><option>C</option></select><button class="btn btn-op" onclick="handleAdvancedOps('transpose')">🔄 Transponer</button><button class="btn btn-op" onclick="handleAdvancedOps('inverse')">🔁 Inversa</button><button class="btn btn-op" onclick="handleAdvancedOps('determinant')">Det</button></div>`;
+        getEl('equations').innerHTML = `<h4>Ecuación Matricial (M · X + N = P)</h4><div id="equation_solver_matrices"><div>M</div> <div class="matrix-grid" id="matrix_eq_m"></div> <div>· X +</div><div>N</div> <div class="matrix-grid" id="matrix_eq_n"></div> <div>=</div><div>P</div> <div class="matrix-grid" id="matrix_eq_p"></div></div><div class="op-group" style="justify-content: center; margin-top: 20px;"><button class="btn btn-op" onclick="solveMatrixEquation()">Resolver para X</button></div><hr style="margin: 30px 0;"><h4>Cálculo de Rango</h4><div class="op-group"><span>Rango de la matriz:</span><select id="rank_matrix_select"><option>A</option><option>B</option><option>C</option></select><button class="btn btn-op" onclick="handleRankCalculation()">Calcular Rango</button></div>`;
+        ['m', 'n', 'p'].forEach(name => { const m_data = [[2,0],[1,2]]; const n_data = [[2,1],[2,1]]; const p_data = [[1,1],[2,2]]; renderMatrixInput(name.toUpperCase(), eval(`${name}_data`), getEl(`matrix_eq_${name}`)); });
+
+        // Expressions Tab - UPDATED
+        getEl('combined').innerHTML = `
+            <h4>Evaluador de Expresiones</h4>
+            <input type="text" id="expression_input" placeholder="Ej: 3*A^T - B^2" style="width:100%; padding:12px; border-radius:8px; border:2px solid #ccc; font-size:1.1em;">
+            <p style="font-size:0.9em; color:#777; margin:5px 0 15px;">Soporte: A,B,C, +, -, *, ^T (Transpuesta), ^-1 (Inversa), ^n (Potencia), ( ) y escalares.</p>
+            <button class="btn btn-op" onclick="evaluateExpression()" style="width:100%; padding: 12px;">📊 Evaluar Expresión</button>`;
+    }
+    
+    function openTab(evt, tabName) {
+        document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+        document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
+        getEl(tabName).style.display = 'block';
+        if (evt) {
+            evt.currentTarget.classList.add('active');
+        } else {
+            document.querySelector(`.tab-btn[onclick*="'${tabName}'"]`).classList.add('active');
+        }
+    }
+
+    // --- NUEVA FUNCIÓN PARA DESCARGAR LA APP ---
+    function downloadApp() {
+        try {
+            // Obtener el HTML completo de la página actual.
+            // Como todo el CSS y JS está en el mismo archivo, será autocontenido.
+            const htmlContent = document.documentElement.outerHTML;
+
+            // Crear un Blob (objeto binario grande) con el contenido HTML.
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+
+            // Crear una URL temporal para el Blob.
+            const url = URL.createObjectURL(blob);
+
+            // Crear un elemento de anclaje (link) invisible.
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'CalculadoraDeMatrices_PRO.html'; // Nombre del archivo a descargar.
+
+            // Añadir el link al cuerpo, hacer clic en él y luego removerlo.
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Liberar la memoria de la URL del Blob.
+            URL.revokeObjectURL(url);
+            showToast('Calculadora descargada. ¡Puedes usar el archivo sin conexión!', 'success');
+        } catch (e) {
+            showToast('Error al intentar descargar la aplicación.', 'error');
+            console.error("Download failed:", e);
+        }
+    }
+
+    // --- GENERALIZED MATRIX OPERATIONS ---
+    const MatrixOps = {
+        // Basic ops...
+        add: (a, b) => { if (a.length !== b.length || a[0].length !== b[0].length) throw new Error("Las matrices deben tener las mismas dimensiones para sumar."); return a.map((r, i) => r.map((c, j) => c + b[i][j])); },
+        subtract: (a, b) => { if (a.length !== b.length || a[0].length !== b[0].length) throw new Error("Las matrices deben tener las mismas dimensiones para restar."); return a.map((r, i) => r.map((c, j) => c - b[i][j])); },
+        scalarMultiply: (m, s) => m.map(r => r.map(c => c * s)),
+        multiply: (a, b) => {
+            const rowsA = a.length, colsA = a[0].length, rowsB = b.length, colsB = b[0].length;
+            if (colsA !== rowsB) throw new Error("El número de columnas de la primera matriz debe ser igual al número de filas de la segunda.");
+            let res = Array(rowsA).fill(0).map(() => Array(colsB).fill(0));
+            for (let i = 0; i < rowsA; i++) for (let j = 0; j < colsB; j++) for (let k = 0; k < colsA; k++) res[i][j] += a[i][k] * b[k][j];
+            return res;
+        },
+        transpose: m => m[0].map((_, j) => m.map(r => r[j])),
+        
+        // NEW: Power function
+        power: function(m, exp) {
+            if (m.length !== m[0].length) throw new Error("La exponenciación solo es válida para matrices cuadradas.");
+            if (exp < 1 || !Number.isInteger(exp)) throw new Error("El exponente debe ser un entero positivo.");
+            if (exp === 1) return cloneMatrix(m);
+
+            let result = cloneMatrix(m);
+            for (let i = 1; i < exp; i++) {
+                result = this.multiply(result, m);
+            }
+            return result;
+        },
+
+        // Advanced ops...
+        getMinor: (m, r, c) => m.filter((_, i) => i !== r).map(row => row.filter((_, j) => j !== c)),
+        determinant: function(m) {
+            if (m.length !== m[0].length) throw new Error("La matriz debe ser cuadrada para calcular el determinante.");
+            const n = m.length;
+            if (n === 1) return m[0][0];
+            if (n === 2) return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+            let det = 0;
+            for (let j = 0; j < n; j++) det += m[0][j] * Math.pow(-1, j) * this.determinant(this.getMinor(m, 0, j));
+            return det;
+        },
+        inverse: function(m) {
+            const det = this.determinant(m);
+            if (Math.abs(det) < 1e-9) throw new Error("La matriz no es invertible (determinante es cero).");
+            const n = m.length;
+            if (n === 1) return [[1/m[0][0]]];
+            const cofactors = m.map((row, r) => row.map((_, c) => Math.pow(-1, r + c) * this.determinant(this.getMinor(m, r, c))));
+            const adjugate = this.transpose(cofactors);
+            return this.scalarMultiply(adjugate, 1 / det);
+        },
+        rank: function(m) {
+            let matrix = cloneMatrix(m); let rows = matrix.length; let cols = matrix[0].length; let rank = 0; let lead = 0;
+            for (let r = 0; r < rows && lead < cols; r++) {
+                let i = r;
+                while (lead < cols && Math.abs(matrix[i][lead]) < 1e-9) { i++; if (i === rows) { i = r; lead++; } }
+                if (lead === cols) break;
+                [matrix[i], matrix[r]] = [matrix[r], matrix[i]];
+                let lv = matrix[r][lead];
+                for (let j = 0; j < cols; j++) matrix[r][j] /= lv;
+                for (let i = 0; i < rows; i++) { if (i !== r) { let mult = matrix[i][lead]; for (let j = 0; j < cols; j++) matrix[i][j] -= mult * matrix[r][j]; } }
+                lead++; rank++;
+            }
+            return rank;
+        }
+    };
+
+    // --- OPERATION HANDLERS ---
+    // ... (handleBasicOps, handleScalarOps, handleAdvancedOps, etc. remain unchanged)
+    function handleBasicOps() { try { const m1Name = getEl('op_basic_m1').value; const m2Name = getEl('op_basic_m2').value; const op = getEl('op_basic_op').value; const m1 = cloneMatrix(appState.matrices[m1Name]); const m2 = cloneMatrix(appState.matrices[m2Name]); let result, title; const steps = [{ title: `Matriz de entrada ${m1Name}`, matrix: m1, color: `color-${m1Name.toLowerCase()}`}, { title: `Matriz de entrada ${m2Name}`, matrix: m2, color: `color-${m2Name.toLowerCase()}`}]; if (op === 'add') { result = MatrixOps.add(m1, m2); title = `${m1Name} + ${m2Name}`; } else { result = MatrixOps.subtract(m1, m2); title = `${m1Name} - ${m2Name}`; } renderResult(title, result, steps); logHistory({ operation: title, steps, result }); } catch (e) { showToast(`Error: ${e.message}`, 'error'); } }
+    function handleScalarOps() { try { const scalar = parseFloat(getEl('op_scalar_val').value); const mName = getEl('op_scalar_m').value; const m = cloneMatrix(appState.matrices[mName]); const result = MatrixOps.scalarMultiply(m, scalar); const title = `${scalar} × ${mName}`; const steps = [{ title: `Escalar`, matrix: [[scalar]], color: `color-result`}, { title: `Matriz de entrada ${mName}`, matrix: m, color: `color-${mName.toLowerCase()}`}]; renderResult(title, result, steps); logHistory({ operation: title, steps, result }); } catch (e) { showToast(`Error: ${e.message}`, 'error'); } }
+    function handleAdvancedOps(op) { try { let result, title, steps = []; if (op === 'multiply') { const m1Name = getEl('op_adv_m1').value; const m2Name = getEl('op_adv_m2').value; const m1 = cloneMatrix(appState.matrices[m1Name]); const m2 = cloneMatrix(appState.matrices[m2Name]); result = MatrixOps.multiply(m1, m2); title = `${m1Name} × ${m2Name}`; steps.push({ title: `Matriz ${m1Name}`, matrix: m1, color: `color-${m1Name.toLowerCase()}`}); steps.push({ title: `Matriz ${m2Name}`, matrix: m2, color: `color-${m2Name.toLowerCase()}`}); } else { const mName = getEl('op_adv_single_m').value; const m = cloneMatrix(appState.matrices[mName]); steps.push({ title: `Matriz de entrada ${mName}`, matrix: m, color: `color-${mName.toLowerCase()}`}); if (op === 'transpose') { result = MatrixOps.transpose(m); title = `Transpuesta de ${mName} (${mName}^T)`; } else if (op === 'inverse') { const det = MatrixOps.determinant(m); if (Math.abs(det) < 1e-9) throw new Error("La matriz no es invertible (determinante es cero)."); steps.push({ title: `Determinante = ${det.toFixed(4)}`, matrix: null}); result = MatrixOps.inverse(m); title = `Inversa de ${mName} (${mName}^-1)`; } else if (op === 'determinant') { result = MatrixOps.determinant(m); title = `Determinante de ${mName}`; const resultHtml = `<p style="font-size: 1.5em; text-align: center; font-weight: 600;">Det(${mName}) = ${result.toFixed(4)}</p>`; renderResult(title, resultHtml, steps); logHistory({ operation: title, steps, result }); return; } } renderResult(title, result, steps); logHistory({ operation: title, steps, result }); } catch (e) { showToast(`Error: ${e.message}`, 'error'); } }
+    function solveMatrixEquation() { try { const M_grid = Array.from(getEl('matrix_eq_m').children).map(c => parseFloat(c.value)); const N_grid = Array.from(getEl('matrix_eq_n').children).map(c => parseFloat(c.value)); const P_grid = Array.from(getEl('matrix_eq_p').children).map(c => parseFloat(c.value)); const M = [M_grid.slice(0, 2), M_grid.slice(2, 4)]; const N = [N_grid.slice(0, 2), N_grid.slice(2, 4)]; const P = [P_grid.slice(0, 2), P_grid.slice(2, 4)]; const title = "Resolviendo M·X + N = P para X"; const steps = [{ title: "Matriz M", matrix: M, color: 'color-a' }, { title: "Matriz N", matrix: N, color: 'color-b' }, { title: "Matriz P", matrix: P, color: 'color-c' }, { title: "Paso 1: Aislar M·X. Calculamos P - N", matrix: null }]; const P_minus_N = MatrixOps.subtract(P, N); steps.push({ title: "Resultado de P - N", matrix: P_minus_N, color: 'color-result' }); steps.push({ title: "Paso 2: Encontrar la inversa de M (M⁻¹)", matrix: null }); const M_inv = MatrixOps.inverse(M); steps.push({ title: "Matriz Inversa M⁻¹", matrix: M_inv, color: 'color-result' }); steps.push({ title: "Paso 3: Calcular X = M⁻¹ · (P - N)", matrix: null }); const result = MatrixOps.multiply(M_inv, P_minus_N); renderResult(title, result, steps); logHistory({ operation: title, steps, result }); } catch (e) { showToast(`Error resolviendo ecuación: ${e.message}`, 'error'); } }
+    function handleRankCalculation() { try { const mName = getEl('rank_matrix_select').value; const m = cloneMatrix(appState.matrices[mName]); const result = MatrixOps.rank(m); const title = `Rango de la Matriz ${mName}`; const steps = [{ title: `Matriz de entrada ${mName}`, matrix: m, color: `color-${mName.toLowerCase()}` }]; const resultHtml = `<p style="font-size: 1.5em; text-align: center; font-weight: 600;">Rango(${mName}) = ${result}</p>`; renderResult(title, resultHtml, steps); logHistory({ operation: title, steps, result }); } catch (e) { showToast(`Error calculando el rango: ${e.message}`, 'error'); } }
+
+    // --- EXPRESSION EVALUATOR (HEAVILY MODIFIED) ---
+    function evaluateExpression() {
+        const expr = getEl('expression_input').value;
+        if (!expr) {
+            showToast("La expresión está vacía.", 'error');
+            return;
+        }
+        try {
+            const steps = [];
+            const result = parseAndEvaluate(expr, steps);
+            const title = `Resultado de: ${expr}`;
+            renderResult(title, result, steps);
+            logHistory({ operation: title, steps, result });
+        } catch (e) {
+            showToast(`Error en la expresión: ${e.message}`, 'error');
+            renderResult(`Error en la expresión: ${expr}`, `<p style="color:var(--c-error);">${e.message}</p>`);
+        }
+    }
+
+    function parseAndEvaluate(expr, steps) {
+        // Regex now accepts ^T, ^t, ^-1, and ^\d+ (e.g., ^2, ^3) case-insensitively
+        const tokens = expr.replace(/\s+/g, '').match(/(\d+\.?\d*|[A-C]|\+|-|\*|\(|\)|\^T|\^-1|\^\d+)/gi);
+        if (!tokens) throw new Error("Expresión inválida.");
+
+        const precedence = { '+': 1, '-': 1, '*': 2 };
+        const values = [];
+        const ops = [];
+
+        const applyOp = () => {
+            const op = ops.pop();
+            const right = values.pop();
+            const left = values.pop();
+            let result, stepTitle;
+
+            if (op === '+') { result = MatrixOps.add(left, right); stepTitle = "Sumando resultados intermedios"; }
+            else if (op === '-') { result = MatrixOps.subtract(left, right); stepTitle = "Restando resultados intermedios"; }
+            else if (op === '*') {
+                if (typeof left === 'number' && typeof right === 'object') { result = MatrixOps.scalarMultiply(right, left); stepTitle = `Multiplicando por escalar ${left}`; }
+                else if (typeof left === 'object' && typeof right === 'object') { result = MatrixOps.multiply(left, right); stepTitle = "Multiplicando matrices"; }
+                else { throw new Error("Multiplicación no válida."); }
+            }
+            steps.push({ title: stepTitle, matrix: result, color: 'color-result' });
+            values.push(result);
+        };
+
+        for (let i = 0; i < tokens.length; i++) {
+            let token = tokens[i];
+            
+            if (!isNaN(token)) {
+                values.push(parseFloat(token));
+            } else if (['A', 'B', 'C'].includes(token.toUpperCase())) {
+                let matrix = cloneMatrix(appState.matrices[token.toUpperCase()]);
+                
+                if (i + 1 < tokens.length) {
+                    let nextToken = tokens[i + 1].toUpperCase();
+                    
+                    if (nextToken === '^T') {
+                        matrix = MatrixOps.transpose(matrix);
+                        steps.push({ title: `Calculando ${token}^T`, matrix, color: `color-${token.toLowerCase()}` });
+                        i++; // Consume operator token
+                    } else if (nextToken === '^-1') {
+                        matrix = MatrixOps.inverse(matrix);
+                        steps.push({ title: `Calculando ${token}^-1`, matrix, color: `color-${token.toLowerCase()}` });
+                        i++; // Consume operator token
+                    } else if (nextToken.startsWith('^') && !isNaN(nextToken.slice(1))) {
+                        const exponent = parseInt(nextToken.slice(1), 10);
+                        if (matrix.length !== matrix[0].length) throw new Error(`La potencia solo se aplica a matrices cuadradas. ${token} no es cuadrada.`);
+                        if (exponent < 1) throw new Error("El exponente debe ser un entero positivo.");
+
+                        let currentResult = cloneMatrix(matrix);
+                        steps.push({ title: `Matriz base para la potencia: ${token}`, matrix: currentResult, color: `color-${token.toLowerCase()}` });
+
+                        for (let k = 2; k <= exponent; k++) {
+                            currentResult = MatrixOps.multiply(currentResult, matrix);
+                            steps.push({ title: `Calculando ${token}^${k} = ${token}^${k-1} * ${token}`, matrix: currentResult, color: 'color-result' });
+                        }
+                        matrix = currentResult;
+                        i++; // Consume power token
+                    }
+                }
+                values.push(matrix);
+            } else if (token === '(') {
+                ops.push(token);
+            } else if (token === ')') {
+                while (ops.length && ops[ops.length - 1] !== '(') applyOp();
+                if (!ops.length) throw new Error("Paréntesis no balanceados.");
+                ops.pop();
+            } else {
+                while (ops.length && precedence[ops[ops.length - 1]] >= precedence[token]) applyOp();
+                ops.push(token);
+            }
+        }
+        while (ops.length > 0) {
+            if (ops[ops.length - 1] === '(') throw new Error("Paréntesis no balanceados.");
+            applyOp();
+        }
+        if (values.length !== 1) throw new Error("Expresión mal formada.");
+        return values[0];
+    }
+
+    // --- RESULT & HISTORY RENDERING ---
+    // ... (These functions remain unchanged, but now receive more detailed step data)
+    function renderResult(title, result, steps = []) { const container = getEl('results_container'); let html = `<h3 class="result-title">${title}</h3>`; if (steps && steps.length > 0) { html += '<h4>Pasos de Cálculo:</h4>'; steps.forEach(step => { html += `<div class="step ${step.color || ''}"><p class="step-title">${step.title}</p>`; if (step.matrix) { html += matrixToHtmlTable(step.matrix); } html += `</div>`; }); } html += '<h4>Resultado Final:</h4>'; if (typeof result === 'object' && result !== null && Array.isArray(result)) { html += matrixToHtmlTable(result, 'result-final'); } else { html += (typeof result === 'number') ? `<p style="font-size: 1.5em; text-align: center; font-weight: 600;">${result.toFixed(4)}</p>` : result; } container.innerHTML = html; container.scrollIntoView({ behavior: 'smooth' }); }
+    function logHistory(logData) { if (appState.history.length >= 50) appState.history.shift(); logData.timestamp = new Date(); appState.history.push(logData); renderHistory(); }
+    function renderHistory() { const log = getEl('history_log'); log.innerHTML = appState.history.length === 0 ? '<p>El historial de operaciones está vacío.</p>' : appState.history.slice().reverse().map(item => `<div class="history-item"><span>${item.timestamp.toLocaleTimeString()}</span><strong>${item.operation}</strong></div>`).join(''); }
+    function clearHistory() { appState.history = []; renderHistory(); showToast('Historial limpiado.', 'success'); }
+
+    // --- TUTORIAL & NOTIFICATIONS ---
+    // ... (These functions remain unchanged)
+    function showModal(show) { getEl('tutorial_modal').style.display = show ? 'flex' : 'none'; if (show) { appState.tutorial.currentStep = 0; updateTutorialView(); } else { document.querySelectorAll('.highlight-tutorial').forEach(el => el.classList.remove('highlight-tutorial')); } }
+    function navigateTutorial(dir) { const { tutorial } = appState; const newStep = tutorial.currentStep + dir; if (newStep >= tutorial.steps.length) { showModal(false); return; } tutorial.currentStep = newStep; updateTutorialView(); }
+    function updateTutorialView() { const { tutorial } = appState; const step = tutorial.steps[tutorial.currentStep]; getEl('tutorial_content').innerHTML = `<h2>${step.title}</h2><p>${step.content}</p>`; getEl('tutorial_indicator').textContent = `Paso ${tutorial.currentStep + 1} / ${tutorial.steps.length}`; getEl('tutorial_prev').disabled = tutorial.currentStep === 0; getEl('tutorial_next').textContent = (tutorial.currentStep === tutorial.steps.length - 1) ? "Finalizar" : "Siguiente"; document.querySelectorAll('.highlight-tutorial').forEach(el => el.classList.remove('highlight-tutorial')); const targetElement = step.target.startsWith('.') || step.target.startsWith('#') ? document.querySelector(step.target) : getEl(step.target); if(targetElement) { targetElement.classList.add('highlight-tutorial'); if (step.target === '#equations' || step.target === '#combined') openTab(null, targetElement.id); targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }
+    function showToast(message, type) { const container = getEl('notification_container'); const toast = document.createElement('div'); toast.className = `toast ${type}`; toast.innerHTML = `<strong>${type === 'success' ? 'Éxito' : 'Error'}:</strong> <span>${message}</span>`; container.appendChild(toast); setTimeout(() => { toast.style.animation = 'fadeOut 0.5s forwards'; setTimeout(() => toast.remove(), 500); }, 4500); }
+
+    // --- EXPORT TO WORD ---
+    // This function remains unchanged. It will automatically work with the new,
+    // more detailed step-by-step data generated by the expression parser.
+    function exportToWord() {
+        if (appState.history.length === 0) {
+            showToast('No hay datos para exportar. Realice algunos cálculos primero.', 'error');
+            return;
+        }
+
+        const matrixStats = (m) => {
+            if (m.length !== m[0].length) return '<p><i>Estadísticas no disponibles para matrices no cuadradas.</i></p>';
+            try {
+                const det = MatrixOps.determinant(m);
+                const trace = m.reduce((t, row, i) => t + row[i], 0);
+                return `<p><b>Determinante:</b> ${det.toFixed(3)}</p><p><b>Traza:</b> ${trace}</p>`;
+            } catch(e) { return `<p>Error al calcular estadísticas.</p>`; }
+        };
+        
+        let reportContent = `<h1>Reporte de Simulador de Matrices PRO</h1><p>Generado el: ${new Date().toLocaleString()}</p><h2>Estado Inicial de las Matrices</h2>
+            ${['A', 'B', 'C'].map(name => { const matrix = appState.matrices[name]; return `<div class="matrix-section"><h3>Matriz ${name} (${matrix.length}x${matrix[0].length})</h3>${matrixToHtmlTable(matrix)}${matrixStats(matrix)}</div>` }).join('')}
+            <hr><h1>Cálculos Realizados</h1>`;
+
+        appState.history.forEach((item, index) => {
+            reportContent += `<div class="calculation-block"><h2>Cálculo #${index + 1}: ${item.operation}</h2><p><i>Realizado el: ${item.timestamp.toLocaleString()}</i></p><h4>Pasos de Cálculo</h4>
+                ${item.steps && item.steps.length > 0 ? item.steps.map(step => `<div class="step-export"><p><b>${step.title}</b></p>${step.matrix ? matrixToHtmlTable(step.matrix, step.color || '') : ''}</div>`).join('') : '<p>No se registraron pasos intermedios para esta operación.</p>'}
+                <div class="final-result-export"><h4>Resultado Final</h4>${ (typeof item.result === 'object' && item.result !== null && Array.isArray(item.result)) ? matrixToHtmlTable(item.result, 'result-final') : `<p class="scalar-result">${item.result}</p>`}</div></div>`;
+        });
+
+        let htmlContent = `<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Reporte de Matrices</title><style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11pt; line-height: 1.5; } h1, h2, h3, h4 { color: #2c3e50; } h1 { font-size: 24pt; border-bottom: 3px solid #3498db; } h2 { font-size: 18pt; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; margin-top: 30px; } h3 { font-size: 14pt; } h4 { font-size: 12pt; color: #34495e; border-bottom: 1px dotted #bdc3c7; margin-top: 20px;} table { border-collapse: collapse; margin: 15px 0; } td { border: 1px solid #bdc3c7; padding: 6px; text-align: center; min-width: 40px; } .matrix-section { margin-bottom: 25px; page-break-inside: avoid; } .calculation-block { page-break-before: always; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-top: 20px; } .step-export { margin-bottom: 15px; } .final-result-export table { border: 2px solid #9b59b6; } .final-result-export td { background-color: rgba(155, 89, 182, 0.05); font-weight: bold; color: #8e44ad; } .scalar-result { font-size: 1.5em; font-weight: bold; color: #8e44ad; text-align: center; }
+            </style></head><body>${reportContent}</body></html>`;
+
+        const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Reporte_Matrices_${new Date().toISOString().slice(0,10)}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('Reporte detallado generado y descarga iniciada.', 'success');
+    }
+</script>
+</body>
+</html>
